@@ -43,6 +43,7 @@
     </ToolchainSettings>
     <MemorySettings>
     </MemorySettings>
+    <GenerateHexFile>True</GenerateHexFile>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="main.c">
