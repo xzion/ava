@@ -25,18 +25,23 @@ int main(void){
 	// Initialization
 	DDRD = 0xFF;
 	DDRC = 0x00;
+	
+	DDRB = 0xFF;
+	
 	setup_timer0();
 	setup_timer1();
 	
 	for(;;) {
-		
-		while(!PINC5) {
+		while(!(PINC&(1<<PINC5))) {
+			PORTB = 0x01;
 			// Do nothing, waiting for order to start!
 		}
 		sei(); // Enable global interrupts!
 		while (!sweep){
+			PORTB = 0x02;
 			// Do nothing, waiting for sweep to be over
 		}
+		cli();
 		sweep = 0;
 	}
 }
@@ -45,98 +50,96 @@ ISR(TIMER1_COMPA_vect){
 	// Timer 1 compare interrupt: change the frequency once a second
 	//OCR1A = 0x61A8; // 25000 (16 step, 50hz) Will change
 	tblpos++;
-	if(tblpos==8){
+	if(tblpos==9){
 		tblpos = 0;
 		tblnum = 0;
-		cli(); // Stop Interrupts firing!
 		sweep = 1;
 		return;
 	}
 	switch(tblpos){
-		case 0: // 50Hz - 64 samples
+		case 1: // 50Hz - 64 samples
 			OCR0A = 0x61;
 			break;
-		case 1: // 100Hz - 64 samples
+		case 2: // 100Hz - 64 samples
 			OCR0A = 0x30;
 			break;
-		case 2: // 500Hz - 64 samples
+		case 3: // 500Hz - 64 samples
 			OCR0A = 0x09;
 			break;
-		case 3: // 1kHz - 16 samples
+		case 4: // 1kHz - 16 samples
 			OCR0A = 0x13;
 			break;
-		case 4: // 2kHz - 16 samples
+		case 5: // 2kHz - 16 samples
 			OCR0A = 0x09;
 			break;
-		case 5: // 4kHz - 16 samples
+		case 6: // 4kHz - 16 samples
 			OCR0A = 0x04;
 			break;
-		case 6: // 8kHz - 8 samples
+		case 7: // 8kHz - 8 samples
 			OCR0A = 0x04;
 		// Do nothing - the interrupt handlers take care of it.
 			break;
-		case 7: // 16kHz - 8 samples
+		case 8: // 16kHz - 8 samples
 			OCR0A = 0x01;
 			break;
-		// Select the 
 	}
 	tblnum = 0;	
-};
+}
 
 ISR(TIMER0_COMPA_vect){
 	// Timer 1 compare interrupt: time to change output
 	switch(tblpos){
 		// Choosing the frequency to output. Changes on timer0 interrupt.
-		case 0: // 50Hz
+		case 1: // 50Hz
 			PORTD = tbl64[tblnum];
 			tblnum++;
 			if (tblnum == 64) {
 				tblnum = 0;	
 			}
 			break;
-		case 1: // 100Hz
+		case 2: // 100Hz
 			PORTD = tbl64[tblnum];
 			tblnum++;
 			if (tblnum == 64) {
 				tblnum = 0;	
 			}
 			break;
-		case 2: // 500Hz
+		case 3: // 500Hz
 			PORTD = tbl64[tblnum];
 			tblnum++;
 			if (tblnum == 64) {
 				tblnum = 0;	
 			}
 			break;
-		case 3: // 1kHz
+		case 4: // 1kHz
 			PORTD = tbl16[tblnum];
 			tblnum++;
 			if (tblnum == 16) {
 				tblnum = 0;	
 			}
 			break;
-		case 4: // 2kHz
+		case 5: // 2kHz
 			PORTD = tbl16[tblnum];
 			tblnum++;
 			if (tblnum == 16) {
 				tblnum = 0;	
 			}
 			break;
-		case 5: // 4kHz
+		case 6: // 4kHz
 			PORTD = tbl16[tblnum];
 			tblnum++;
 			if (tblnum == 16) {
 				tblnum = 0;	
 			}
 			break;
-		case 6: // 8kHz
+		case 7: // 8kHz
 			PORTD = tbl8[tblnum];
 			tblnum++;
 			if (tblnum == 8) {
 				tblnum = 0;	
 			}
 			break;
-		case 7: // 16kHz
+		case 8: // 16kHz
 			PORTD = tbl8[tblnum];
 			tblnum++;
 			if (tblnum == 8) {
