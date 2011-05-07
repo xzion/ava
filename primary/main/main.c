@@ -22,6 +22,7 @@ int main(void){
 	// Initialization
 	DDRD = 0xFF;
 	DDRB = 0xFF;
+	DDRC = 0xFF;
 	setup_usart();
 	sei(); // Enable global interrupts!
 	UDR0 = ' ';
@@ -88,8 +89,12 @@ ISR(USART_RX_vect) {
 	PORTB = 0x01;
 	if (input ==  's'){
 		output_string("s: Entering Audio Sweep Mode\n\r");
+		PORTC = 0x10;
 	} else if (input == 'v') {
 		output_string("v: Entering Voltmeter Mode\n\r");
+	} else if (input == 'x') {
+		output_string("x: Stopping Audio Sweep\n\r");
+		PORTC = 0x00;
 	} else {
 		output_string("Invalid Command: Entering Splash Mode\n\r");
 	}

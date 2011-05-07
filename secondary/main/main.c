@@ -50,7 +50,7 @@ ISR(TIMER1_COMPA_vect){
 	// Timer 1 compare interrupt: change the frequency once a second
 	//OCR1A = 0x61A8; // 25000 (16 step, 50hz) Will change
 	tblpos++;
-	if(tblpos==9){
+	if(tblpos==10){
 		tblpos = 0;
 		tblnum = 0;
 		sweep = 1;
@@ -58,28 +58,30 @@ ISR(TIMER1_COMPA_vect){
 	}
 	switch(tblpos){
 		case 1: // 50Hz - 64 samples
+			OCR0A = 0xFF;
+			break;
+		case 2: // 50Hz - 64 samples
 			OCR0A = 0x61;
 			break;
-		case 2: // 100Hz - 64 samples
+		case 3: // 100Hz - 64 samples
 			OCR0A = 0x30;
 			break;
-		case 3: // 500Hz - 64 samples
+		case 4: // 500Hz - 64 samples
 			OCR0A = 0x09;
 			break;
-		case 4: // 1kHz - 16 samples
+		case 5: // 1kHz - 16 samples
 			OCR0A = 0x13;
 			break;
-		case 5: // 2kHz - 16 samples
+		case 6: // 2kHz - 16 samples
 			OCR0A = 0x09;
 			break;
-		case 6: // 4kHz - 16 samples
+		case 7: // 4kHz - 16 samples
 			OCR0A = 0x04;
 			break;
-		case 7: // 8kHz - 8 samples
+		case 8: // 8kHz - 8 samples
 			OCR0A = 0x04;
-		// Do nothing - the interrupt handlers take care of it.
 			break;
-		case 8: // 16kHz - 8 samples
+		case 9: // 16kHz - 8 samples
 			OCR0A = 0x01;
 			break;
 	}
@@ -90,56 +92,59 @@ ISR(TIMER0_COMPA_vect){
 	// Timer 1 compare interrupt: time to change output
 	switch(tblpos){
 		// Choosing the frequency to output. Changes on timer0 interrupt.
-		case 1: // 50Hz
+		case 1: // Break at the start
+			PORTD = 0x00;
+			break;
+		case 2: // 50Hz
 			PORTD = tbl64[tblnum];
 			tblnum++;
 			if (tblnum == 64) {
 				tblnum = 0;	
 			}
 			break;
-		case 2: // 100Hz
+		case 3: // 100Hz
 			PORTD = tbl64[tblnum];
 			tblnum++;
 			if (tblnum == 64) {
 				tblnum = 0;	
 			}
 			break;
-		case 3: // 500Hz
+		case 4: // 500Hz
 			PORTD = tbl64[tblnum];
 			tblnum++;
 			if (tblnum == 64) {
 				tblnum = 0;	
 			}
 			break;
-		case 4: // 1kHz
+		case 5: // 1kHz
 			PORTD = tbl16[tblnum];
 			tblnum++;
 			if (tblnum == 16) {
 				tblnum = 0;	
 			}
 			break;
-		case 5: // 2kHz
+		case 6: // 2kHz
 			PORTD = tbl16[tblnum];
 			tblnum++;
 			if (tblnum == 16) {
 				tblnum = 0;	
 			}
 			break;
-		case 6: // 4kHz
+		case 7: // 4kHz
 			PORTD = tbl16[tblnum];
 			tblnum++;
 			if (tblnum == 16) {
 				tblnum = 0;	
 			}
 			break;
-		case 7: // 8kHz
+		case 8: // 8kHz
 			PORTD = tbl8[tblnum];
 			tblnum++;
 			if (tblnum == 8) {
 				tblnum = 0;	
 			}
 			break;
-		case 8: // 16kHz
+		case 9: // 16kHz
 			PORTD = tbl8[tblnum];
 			tblnum++;
 			if (tblnum == 8) {
@@ -153,7 +158,7 @@ void setup_timer1(void){
 	// Initializing values
 	TCCR1B = (0<<WGM13)|(1<<WGM12)|(1<<CS12)|(0<<CS11)|(1<<CS10); // Set clear on compare mode (CTC) and 1024 prescaler
 	TIMSK1 = (1<<OCIE1A); // Enable interrupt on compare register A (OCR1A)
-	OCR1A = 0x4FFF;	// 20000 (once a second)
+	OCR1A = 0x4FFF;	// 20000 (once a secondish)
 }
 
 void setup_timer0(void){
@@ -161,5 +166,5 @@ void setup_timer0(void){
 	TCCR0A = (1<<WGM01)|(0<<WGM00); // Set clear on compare mode (CTC)
 	TCCR0B = (0<<CS02)|(1<<CS01)|(1<<CS00); // Setting clock prescaler to 64
 	TIMSK0 = (1<<OCIE0A); // Enable interrupt on compare register A (OCR0A)
-	OCR0A = 0x61; // Default value, 50Hz
+	OCR0A = 0xFF; // Default value, 50Hz
 }
