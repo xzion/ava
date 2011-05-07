@@ -49,18 +49,24 @@ int main(void){
 ISR(TIMER1_COMPA_vect){
 	// Timer 1 compare interrupt: change the frequency once a second
 	//OCR1A = 0x61A8; // 25000 (16 step, 50hz) Will change
-	tblpos++;
+	//tblpos++;
+	tblpos = 2; //Testing
 	if(tblpos==10){
 		tblpos = 0;
 		tblnum = 0;
+		PORTC = 0x00; // Tell Primary that sweep is over
+		DDRC = 0x00; // Go back to listening on PC5
 		sweep = 1;
+		PORTD = 0x00;
 		return;
 	}
 	switch(tblpos){
-		case 1: // 50Hz - 64 samples
+		case 1: // Break
 			OCR0A = 0xFF;
 			break;
 		case 2: // 50Hz - 64 samples
+			DDRC = 0xFF;
+			PORTC = 0x10; // Tell Primary chip to start testing with ADC
 			OCR0A = 0x61;
 			break;
 		case 3: // 100Hz - 64 samples
@@ -85,7 +91,7 @@ ISR(TIMER1_COMPA_vect){
 			OCR0A = 0x01;
 			break;
 	}
-	tblnum = 0;	
+	//tblnum = 0;	
 }
 
 ISR(TIMER0_COMPA_vect){
