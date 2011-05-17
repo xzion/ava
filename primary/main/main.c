@@ -26,6 +26,7 @@ int main(void){
 	DDRD = 0xFF;
 	DDRB = 0xFF;
 	DDRC = 0xFF;
+	PORTC = 0x00;
 	setup_usart();
 	setup_adc();
 	sei(); // Enable global interrupts!
