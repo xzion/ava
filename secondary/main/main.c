@@ -25,17 +25,19 @@ int main(void){
 	// Initialization
 	DDRD = 0xFF;
 	DDRC = 0x00;
-	
 	DDRB = 0xFF;
 	
 	setup_timer0();
 	setup_timer1();
 	
 	for(;;) {
+		DDRC = 0x00;
 		while(!(PINC&(1<<PINC5))) {
 			PORTB = 0x01;
 			// Do nothing, waiting for order to start!
 		}
+		DDRC = 0xFF;
+		PORTC = 0x00;
 		sei(); // Enable global interrupts!
 		while (!sweep){
 			PORTB = 0x02;
@@ -51,38 +53,48 @@ ISR(TIMER1_COMPA_vect){
 	//OCR1A = 0x61A8; // 25000 (16 step, 50hz) Will change
 	tblpos++;
 	if(tblpos==10){
+		PORTC = 0x01;
 		tblpos = 0;
 		tblnum = 0;
 		sweep = 1;
 		return;
 	}
 	switch(tblpos){
-		case 1: // 50Hz - 64 samples
+		case 1: // Break
 			OCR0A = 0xFF;
+			PORTC = 0x00;
 			break;
 		case 2: // 50Hz - 64 samples
 			OCR0A = 0x61;
+			PORTC = 0x10;
 			break;
 		case 3: // 100Hz - 64 samples
 			OCR0A = 0x30;
+			PORTC = 0x00;
 			break;
 		case 4: // 500Hz - 64 samples
 			OCR0A = 0x09;
+			PORTC = 0x10;
 			break;
 		case 5: // 1kHz - 16 samples
 			OCR0A = 0x13;
+			PORTC = 0x00;
 			break;
 		case 6: // 2kHz - 16 samples
 			OCR0A = 0x09;
+			PORTC = 0x10;
 			break;
 		case 7: // 4kHz - 16 samples
 			OCR0A = 0x04;
+			PORTC = 0x00;
 			break;
 		case 8: // 8kHz - 8 samples
 			OCR0A = 0x04;
+			PORTC = 0x10;
 			break;
 		case 9: // 16kHz - 8 samples
 			OCR0A = 0x01;
+			PORTC = 0x00;
 			break;
 	}
 	tblnum = 0;	

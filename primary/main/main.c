@@ -13,8 +13,11 @@
 volatile char buffer[BUFFER_SIZE];
 volatile unsigned char insert_pos;
 volatile unsigned char bytes_in_buffer;
+int sweeping = 0;
 
 void setup_usart();
+void setup_adc();
+int get_adc();
 void output_char(char c);
 void output_string(char* str);
 
@@ -24,10 +27,49 @@ int main(void){
 	DDRB = 0xFF;
 	DDRC = 0xFF;
 	setup_usart();
+	setup_adc();
 	sei(); // Enable global interrupts!
-	UDR0 = ' ';
 	output_string("Ready: Coen McClelland 42363901\n\r");
+	UDR0 = ' ';
+	
+	int sweepres[8];
+	int currstat;
+	
 	for(;;) {
+		
+		while(sweeping) {
+			DDRC = 0xFF;
+			PORTC = 0x10;
+			DDRC = 0x00;
+			while(!(PINC&(1<<PINC5))) {
+				// Do Nothing, waiting to start.
+			}
+			int i;
+			for (i = 0; i < 8; i++) {
+				DDRC = 0x00;
+				currstat = PINC;
+				int min = 255;
+				int max = 0;
+				int adc_result, avg;
+				
+				while (PINC == currstat) {
+					adc_result = get_adc();
+					
+					if (adc_result < min) {
+						min = adc_result;
+					}
+					else if (adc_result > max) {
+						max = adc_result;
+					}
+				}
+				
+				avg = (min + max)/2;
+				sweepres[i] = avg;
+			}
+		}
+		DDRC = 0xFF;
+		PORTC = 0x00;
+		// DO LCD graph for 10 seconds
 	}
 }
 
@@ -38,6 +80,24 @@ void setup_usart() {
 	//Enable receiver and transmitter
 	UCSR0B = (1<<RXEN0)|(1<<TXEN0)|(1<<RXCIE0)|(1<<TXCIE0);
 	
+}
+
+void setup_adc() {
+	// Set reference voltage (VCC), location ADC0
+	ADMUX = (0<<REFS1)|(1<<REFS0)|(1<<ADLAR);
+	// Enable ADC and interrupt. Clock divider set to 2.
+	ADCSRA = (1<<ADEN);
+	
+}
+
+int get_adc() {
+	// Stuff
+	ADCSRA = (1<<ADSC);
+	while(!(ADCSRA&(1<<ADIF))){
+		// Do nothing, wait for conversion to complete
+	}
+	int res = ADCH;
+	return res;
 }
 
 void output_string(char* str) {
@@ -67,8 +127,7 @@ ISR(USART_TX_vect) {
 		char c;
 		if(insert_pos - bytes_in_buffer < 0) {
 			/* Need to wrap around */
-			c = buffer[insert_pos - bytes_in_buffer
-				+ BUFFER_SIZE];
+			c = buffer[insert_pos - bytes_in_buffer	+ BUFFER_SIZE];
 		} else {
 			c = buffer[insert_pos - bytes_in_buffer];
 		}
@@ -89,12 +148,12 @@ ISR(USART_RX_vect) {
 	PORTB = 0x01;
 	if (input ==  's'){
 		output_string("s: Entering Audio Sweep Mode\n\r");
-		PORTC = 0x10;
+		sweeping = 1;
 	} else if (input == 'v') {
 		output_string("v: Entering Voltmeter Mode\n\r");
 	} else if (input == 'x') {
 		output_string("x: Stopping Audio Sweep\n\r");
-		PORTC = 0x00;
+		sweeping = 0;
 	} else {
 		output_string("Invalid Command: Entering Splash Mode\n\r");
 	}
