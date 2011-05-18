@@ -7,8 +7,9 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <stdio.h>
 
-#define BUFFER_SIZE 64
+#define BUFFER_SIZE 128
 
 volatile char buffer[BUFFER_SIZE];
 volatile unsigned char insert_pos;
@@ -27,11 +28,12 @@ int main(void){
 	DDRB = 0xFF;
 	DDRC = 0xFF;
 	PORTC = 0x00;
+	PORTB = 0x00;
 	setup_usart();
 	setup_adc();
 	sei(); // Enable global interrupts!
-	output_string("Ready: Coen McClelland 42363901\n\r");
-	UDR0 = ' ';
+	output_string("Ready: Coen McClelland 42363901\n");
+	UDR0 = '\r';
 	
 	int sweepres[8];
 	int currstat;
@@ -39,33 +41,70 @@ int main(void){
 	for(;;) {
 		
 		while(sweeping) {
-			DDRC = 0xFF;
+			output_string("sweeping\n");
+			UDR0 = '\r';
+			while(bytes_in_buffer != 0) {
+				// nothing, wait for output to complete
+			}
+			
+			/*DDRC = 0xFF;
 			PORTC = 0x10;
 			DDRC = 0x00;
 			while(!(PINC&(1<<PINC5))) {
 				// Do Nothing, waiting to start.
-			}
+			}*/
 			int i;
-			for (i = 0; i < 8; i++) {
-				DDRC = 0x00;
-				currstat = PINC;
+			for (i = 0; i < 1; i++) {
+				//DDRC = 0x00;
+				//currstat = PINC;
+				output_string("forloop\n");
+				UDR0 = '\r';
+				while(bytes_in_buffer != 0) {
+				// nothing, wait for output to complete
+				}
 				int min = 255;
 				int max = 0;
 				int adc_result, avg;
+				char gotout[10];
 				
-				while (PINC == currstat) {
+				//while (PINC == currstat) {
+				while (sweeping) {
 					adc_result = get_adc();
-					
 					if (adc_result < min) {
 						min = adc_result;
 					}
 					else if (adc_result > max) {
 						max = adc_result;
 					}
+					
+					//sprintf(gotout, "got %d\n", adc_result);
+					PORTB = max;
+					//output_string(gotout);
+					//UDR0 = '\r';
+					//while(bytes_in_buffer != 0) {
+						// nothing, wait for output to complete
+					//}
 				}
-				
+				sprintf(gotout, "min %d\n", min);
+				output_string(gotout);
+				UDR0 = '\r';
+				while(bytes_in_buffer != 0) {
+					// nothing, wait for output to complete
+				}
+				sprintf(gotout, "max %d\n", max);
+				output_string(gotout);
+				UDR0 = '\r';
+				while(bytes_in_buffer != 0) {
+					// nothing, wait for output to complete
+				}
 				avg = (min + max)/2;
 				sweepres[i] = avg;
+				sprintf(gotout, "avg %d\n", avg);
+				output_string(gotout);
+				UDR0 = '\r';
+				while(bytes_in_buffer != 0) {
+					// nothing, wait for output to complete
+				}
 			}
 		}
 		DDRC = 0xFF;
@@ -77,7 +116,7 @@ int main(void){
 void setup_usart() {
 	/*Set baud rate */
 	UBRR0H = 0x00;
-	UBRR0L = 0x81; // 129 - baud rate calculation
+	UBRR0L = 0x33; // 51 - baud rate calculation
 	//Enable receiver and transmitter
 	UCSR0B = (1<<RXEN0)|(1<<TXEN0)|(1<<RXCIE0)|(1<<TXCIE0);
 	
@@ -93,7 +132,7 @@ void setup_adc() {
 
 int get_adc() {
 	// Stuff
-	ADCSRA = (1<<ADSC);
+	ADCSRA |= (1<<ADSC);
 	while(!(ADCSRA&(1<<ADIF))){
 		// Do nothing, wait for conversion to complete
 	}
@@ -148,12 +187,12 @@ ISR(USART_RX_vect) {
 	input = UDR0;
 	PORTB = 0x01;
 	if (input ==  's'){
-		output_string("s: Entering Audio Sweep Mode\n\r");
+		output_string("s: Entering Audio Sweep Mode\n");
 		sweeping = 1;
 	} else if (input == 'v') {
-		output_string("v: Entering Voltmeter Mode\n\r");
+		output_string("v: Entering Voltmeter Mode\n");
 	} else if (input == 'x') {
-		output_string("x: Stopping Audio Sweep\n\r");
+		output_string("x: Stopping Audio Sweep\n");
 		sweeping = 0;
 	} else {
 		output_string("Invalid Command: Entering Splash Mode\n\r");
