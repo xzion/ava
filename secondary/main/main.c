@@ -24,20 +24,21 @@ int tbl64[64] = {0x80, 0x8C, 0x98, 0xA4, 0xB0, 0xBB, 0xC6, 0xD0, 0xD9, 0xE2, 0xE
 int main(void){
 	// Initialization
 	DDRD = 0xFF;
-	DDRC = 0x00;
+	DDRC = 0x10;
 	DDRB = 0xFF;
 	
 	setup_timer0();
 	setup_timer1();
 	
 	for(;;) {
-		DDRC = 0x00;
-		while(!(PINC&(1<<PINC5))) {
+		//DDRC = 0x00;
+		PORTC = (0<<PINC5);
+		while(!(PINC&(1<<PINC4))) {
 			PORTB = 0x01;
 			// Do nothing, waiting for order to start!
 		}
-		DDRC = 0xFF;
-		PORTC = 0x00;
+		//DDRC = 0xFF;
+		PORTC = (0<<PINC5);
 		sei(); // Enable global interrupts!
 		while (!sweep){
 			PORTB = 0x02;
@@ -51,14 +52,12 @@ int main(void){
 ISR(TIMER1_COMPA_vect){
 	// Timer 1 compare interrupt: change the frequency once a second
 	//OCR1A = 0x61A8; // 25000 (16 step, 50hz) Will change
-	//tblpos++;
-	tblpos = 2; //Testing
+	tblpos++;
+	//tblpos = 2; //Testing
 	if(tblpos==10){
-		PORTC = 0x01;
+		PORTC = (1<<PINC5);
 		tblpos = 0;
 		tblnum = 0;
-		PORTC = 0x00; // Tell Primary that sweep is over
-		DDRC = 0x00; // Go back to listening on PC5
 		sweep = 1;
 		PORTD = 0x00;
 		return;
@@ -66,44 +65,41 @@ ISR(TIMER1_COMPA_vect){
 	switch(tblpos){
 		case 1: // Break
 			OCR0A = 0xFF;
-			PORTC = 0x00;
 			break;
 		case 2: // 50Hz - 64 samples
-			DDRC = 0xFF;
-			PORTC = 0x10; // Tell Primary chip to start testing with ADC
+			PORTC = (1<<PINC5); // Tell Primary chip to start testing with ADC
 			OCR0A = 0x61;
-			PORTC = 0x10;
 			break;
 		case 3: // 100Hz - 64 samples
 			OCR0A = 0x30;
-			PORTC = 0x00;
+			PORTC = (0<<PINC5);
 			break;
 		case 4: // 500Hz - 64 samples
 			OCR0A = 0x09;
-			PORTC = 0x10;
+			PORTC = (1<<PINC5);
 			break;
 		case 5: // 1kHz - 16 samples
 			OCR0A = 0x13;
-			PORTC = 0x00;
+			PORTC = (0<<PINC5);
 			break;
 		case 6: // 2kHz - 16 samples
 			OCR0A = 0x09;
-			PORTC = 0x10;
+			PORTC = (1<<PINC5);
 			break;
 		case 7: // 4kHz - 16 samples
 			OCR0A = 0x04;
-			PORTC = 0x00;
+			PORTC = (0<<PINC5);
 			break;
 		case 8: // 8kHz - 8 samples
 			OCR0A = 0x04;
-			PORTC = 0x10;
+			PORTC = (1<<PINC5);
 			break;
 		case 9: // 16kHz - 8 samples
 			OCR0A = 0x01;
-			PORTC = 0x00;
+			PORTC = (0<<PINC5);
 			break;
 	}
-	//tblnum = 0;	
+	tblnum = 0;	
 }
 
 ISR(TIMER0_COMPA_vect){

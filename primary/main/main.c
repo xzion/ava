@@ -41,12 +41,13 @@ int main(void){
 	for(;;) {
 		
 		while(sweeping) {
+			/*
 			output_string("sweeping\n");
 			UDR0 = '\r';
 			while(bytes_in_buffer != 0) {
 				// nothing, wait for output to complete
 			}
-			
+			*/
 			/*DDRC = 0xFF;
 			PORTC = 0x10;
 			DDRC = 0x00;
@@ -57,11 +58,13 @@ int main(void){
 			for (i = 0; i < 1; i++) {
 				//DDRC = 0x00;
 				//currstat = PINC;
+				/*
 				output_string("forloop\n");
 				UDR0 = '\r';
 				while(bytes_in_buffer != 0) {
 				// nothing, wait for output to complete
 				}
+				*/
 				int min = 255;
 				int max = 0;
 				int adc_result, avg;
@@ -187,15 +190,17 @@ ISR(USART_RX_vect) {
 	input = UDR0;
 	PORTB = 0x01;
 	if (input ==  's'){
-		output_string("s: Entering Audio Sweep Mode\n");
+		output_string("mplitude,5,12,36,2,4,9,47,254");
 		sweeping = 1;
+		UDR0 = 'a';
 	} else if (input == 'v') {
 		output_string("v: Entering Voltmeter Mode\n");
+		UDR0 = ' ';
 	} else if (input == 'x') {
 		output_string("x: Stopping Audio Sweep\n");
 		sweeping = 0;
+		UDR0 = ' ';
 	} else {
-		output_string("Invalid Command: Entering Splash Mode\n\r");
+		//output_string("Invalid Command: Entering Splash Mode\n\r");
 	}
-	UDR0 = ' ';
 }
