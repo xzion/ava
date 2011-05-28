@@ -8,13 +8,11 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <stdio.h>
-#include <inttypes.h>
-#include <avr/pgmspace.h>
-#include <util/delay.h>
+
 
 #define BUFFER_SIZE 128
-#define F_CPU 8000000
 
+/*
 #define LCDOUTPUT PORTB
 
 #define LCDWRITE PORTD6
@@ -70,33 +68,13 @@
 
 #define T6963_SCREEN_PEEK					0xE0
 #define T6963_SCREEN_COPY					0xE8
-
+*/
 
 
 volatile char buffer[BUFFER_SIZE];
 volatile unsigned char insert_pos;
 volatile unsigned char bytes_in_buffer;
 int sweeping = 0;
-
-void setup_usart();
-void setup_adc();
-int get_adc();
-void output_char(char c);
-void output_string(char* str);
-void lcdwritedata(unsigned char data);
-void lcdwritecom(unsigned char command);
-unsigned char lcdcheck(void);
-void delay(void);
-void lcdinit(void);
-void lcddo(unsigned char x);
-void lcdwritechar(char charCode);
-void lcdcoord(unsigned char x, unsigned char y);
-void lcdsetpointer(unsigned int address);
-void lcdcleartext(void);
-void lcdwritestring(char * string);
-void lcdcleargen(void);
-void lcdclearpic(void);
-
 
 
 int main(void){
@@ -201,7 +179,7 @@ int main(void){
 		DDRC = 0xFF;
 		PORTC = 0x00;
 		// DO LCD graph for 10 seconds
-	}
+	} 
 }
 
 void setup_usart() {
