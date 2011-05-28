@@ -38,7 +38,7 @@ int main(void){
 			// Do nothing, waiting for order to start!
 		}
 		//DDRC = 0xFF;
-		PORTC = (0<<PINC5);
+		PORTC = (0<<PORTC5);
 		sei(); // Enable global interrupts!
 		while (!sweep){
 			PORTB = 0x02;

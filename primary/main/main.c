@@ -8,8 +8,70 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <stdio.h>
+#include <inttypes.h>
+#include <avr/pgmspace.h>
+#include <util/delay.h>
 
 #define BUFFER_SIZE 128
+#define F_CPU 8000000
+
+#define LCDOUTPUT PORTB
+
+#define LCDWRITE PORTD2
+#define LCDREAD PORTD3
+#define LCDENABLE PORTD4
+#define LCDCOMMAND PORTD5
+#define LCDRESET PORTD6
+#define LCDFONT PORTD7
+#define LCDROWS 64
+#define LCDCOLS 128
+#define LCDSPACE (LCDCOLS / LCDROWS)
+#define LCDAREA (LCDSPACE * LCDROWS)
+
+#define T6963_SET_CURSOR_POINTER			0x21
+#define T6963_SET_OFFSET_REGISTER			0x22
+#define T6963_SET_ADDRESS_POINTER			0x24
+
+#define T6963_SET_TEXT_HOME_ADDRESS			0x40
+#define T6963_SET_TEXT_AREA					0x41
+#define T6963_SET_GRAPHIC_HOME_ADDRESS		0x42
+#define T6963_SET_GRAPHIC_AREA				0x43
+
+#define T6963_MODE_SET						0x80
+
+
+#define T6963_DISPLAY_MODE					0x90
+	#define T6963_CURSOR_BLINK_ON			0x01
+	#define T6963_CURSOR_DISPLAY_ON			0x02
+	#define T6963_TEXT_DISPLAY_ON			0x04
+	#define T6963_GRAPHIC_DISPLAY_ON		0x08				
+
+
+#define T6963_CURSOR_PATTERN_SELECT			0xA0
+	#define T6963_CURSOR_1_LINE				0x00
+	#define T6963_CURSOR_2_LINE				0x01
+	#define T6963_CURSOR_3_LINE				0x02
+	#define T6963_CURSOR_4_LINE				0x03
+	#define T6963_CURSOR_5_LINE				0x04
+	#define T6963_CURSOR_6_LINE				0x05
+	#define T6963_CURSOR_7_LINE				0x06
+	#define T6963_CURSOR_8_LINE				0x07
+
+#define T6963_SET_DATA_AUTO_WRITE			0xB0
+#define T6963_SET_DATA_AUTO_READ			0xB1
+#define T6963_AUTO_RESET					0xB2
+
+#define T6963_DATA_WRITE_AND_INCREMENT		0xC0
+#define T6963_DATA_READ_AND_INCREMENT		0xC1
+#define T6963_DATA_WRITE_AND_DECREMENT		0xC2
+#define T6963_DATA_READ_AND_DECREMENT		0xC3
+#define T6963_DATA_WRITE_AND_NONVARIALBE	0xC4
+#define T6963_DATA_READ_AND_NONVARIABLE		0xC5
+
+#define T6963_SCREEN_PEEK					0xE0
+#define T6963_SCREEN_COPY					0xE8
+
+
 
 volatile char buffer[BUFFER_SIZE];
 volatile unsigned char insert_pos;
@@ -21,12 +83,19 @@ void setup_adc();
 int get_adc();
 void output_char(char c);
 void output_string(char* str);
+void lcdwrite(unsigned char data);
+void lcdwritecom(unsigned char command);
+unsigned char lcdcheck(void);
+void delay(void);
+void lcdinit(void);
 
 int main(void){
 	// Initialization
+	
 	DDRD = 0xFF;
 	DDRB = 0xFF;
 	DDRC = 0xFF;
+	PORTD |= ((1 << LCDWRITE) | (1 << LCDREAD) | (1 << LCDENABLE) | (1 << LCDCOMMAND) | (1 << LCDRESET) | (1 << LCDFONT));
 	PORTC = 0x00;
 	PORTB = 0x00;
 	setup_usart();
@@ -36,7 +105,7 @@ int main(void){
 	UDR0 = '\r';
 	
 	int sweepres[8];
-	int currstat;
+	//int currstat;
 	
 	for(;;) {
 		
@@ -204,3 +273,85 @@ ISR(USART_RX_vect) {
 		//output_string("Invalid Command: Entering Splash Mode\n\r");
 	}
 }
+
+void delay(void)
+{
+volatile unsigned char i;
+for(i = 0; i < (F_CPU/1000000); i++)
+  {
+  asm("nop");
+  }
+}
+
+void lcdinit(void)
+{
+
+PORTB &= ~(1 << LCDRESET);
+_delay_ms(1);
+PORTB |= (1 << LCDRESET);
+
+PORTB &= ~(1 << LCDFONT);
+
+
+lcdwrite(0 & 0xFF);
+lcdwrite(0 >> 8);
+lcdwritecom(T6963_SET_GRAPHIC_HOME_ADDRESS);
+
+lcdwrite(LCDSPACE);
+lcdwrite(0x00);
+lcdwritecom(T6963_SET_GRAPHIC_AREA);
+
+lcdwrite(0);
+lcdwrite(0 >> 8);
+lcdwritecom(T6963_SET_TEXT_HOME_ADDRESS);
+
+lcdwrite(LCDSPACE);
+lcdwrite(0x00);
+lcdwritecom(T6963_SET_TEXT_AREA);
+
+lcdwrite(2);
+lcdwrite(0x00);
+lcdwritecom(T6963_SET_OFFSET_REGISTER);
+
+lcdwritecom(T6963_DISPLAY_MODE  | T6963_GRAPHIC_DISPLAY_ON   | T6963_TEXT_DISPLAY_ON /*| T6963_CURSOR_DISPLAY_ON*/);
+
+lcdwritecom(T6963_MODE_SET | 0);
+
+}
+
+unsigned char lcdcheck(void)
+{
+int tmp;
+DDRB = 0x00;
+
+PORTD &= ~((1 << LCDREAD) | (1 << LCDENABLE));
+delay();
+tmp = PINB;
+DDRB = 0xFF;
+PORTD |= ((1 << LCDREAD) | (1 << LCDENABLE));
+return tmp;
+}
+
+void lcdwritecom(unsigned char command)
+{
+while(!(lcdcheck()&0x03));
+PORTB = command;
+
+PORTD &= ~((1 << LCDWRITE) | (1 << LCDENABLE));
+delay();
+PORTD |= ((1 << LCDWRITE) | (1 << LCDENABLE));
+}
+
+void lcdwrite(unsigned char data)
+{
+while(!(lcdcheck()&0x03));
+PORTB = data;
+
+PORTD &= ~((1 << LCDWRITE) | (1 << LCDENABLE) | (1 << LCDCOMMAND));
+delay();
+PORTD |= ((1 << LCDWRITE) | (1 << LCDENABLE) | (1 << LCDCOMMAND));
+}
+
+
+
+
