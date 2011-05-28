@@ -90,6 +90,14 @@ void delay(void);
 void lcdinit(void);
 void lcddo(unsigned char x);
 void lcdwritechar(char charCode);
+void lcdcoord(unsigned char x, unsigned char y);
+void lcdsetpointer(unsigned int address);
+void lcdcleartext(void);
+void lcdwritestring(char * string);
+void lcdcleargen(void);
+void lcdclearpic(void);
+
+
 
 int main(void){
 	// Initialization
@@ -101,6 +109,12 @@ int main(void){
 	PORTC = 0x00;
 	PORTB = 0x00;
 	lcdinit();
+	lcdcleartext();
+	lcdcleargen();
+	lcdclearpic();
+	
+	lcdcoord(0,0);
+	lcdwritestring("group 23 woo");
 	lcdwritechar('a');
 	setup_usart();
 	setup_adc();
@@ -367,6 +381,67 @@ void lcddo(unsigned char x)
 lcdwritedata(x);
 lcdwritecom(T6963_DATA_WRITE_AND_INCREMENT);
 }
+
+void lcdsetpointer(unsigned int address)
+{
+lcdwritechar(address & 0xFF);
+lcdwritechar(address >> 8);
+lcdwritecom(T6963_SET_ADDRESS_POINTER);
+}
+
+void lcdcleartext(void)
+{
+int i;
+lcdsetpointer(0);
+
+for(i = 0; i < 8; i++)
+  {
+  lcddo(0);
+  }
+}
+
+void lcdcleargen(void)
+{
+unsigned int i;
+lcdsetpointer(2 << 11);
+
+for(i = 0; i < 256 * 8; i++)
+  {
+  lcddo(0);
+  }
+}
+
+void lcdclearpic(void)
+{
+int i;
+lcdsetpointer(2);
+for(i = 0; i < LCDAREA; i++)
+  {
+  lcddo(0x00);
+  }
+}
+
+void lcdwritestring(char * string)
+{
+while(*string)
+  {
+  lcdwritechar(*string++);
+  }
+}
+
+void lcdcoord(unsigned char x, unsigned char y)
+{
+unsigned int address;
+
+address = 0 +  x + (LCDSPACE * y);
+
+lcdsetpointer(address);
+}
+
+
+
+
+
 
 
 
