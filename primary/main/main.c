@@ -17,11 +17,11 @@
 
 #define LCDOUTPUT PORTB
 
-#define LCDWRITE PORTD2
-#define LCDREAD PORTD3
+#define LCDWRITE PORTD6
+#define LCDREAD PORTD5
 #define LCDENABLE PORTD4
-#define LCDCOMMAND PORTD5
-#define LCDRESET PORTD6
+#define LCDCOMMAND PORTD3	
+#define LCDRESET PORTD2
 #define LCDFONT PORTD7
 #define LCDROWS 64
 #define LCDCOLS 128
@@ -37,7 +37,7 @@
 #define T6963_SET_GRAPHIC_HOME_ADDRESS		0x42
 #define T6963_SET_GRAPHIC_AREA				0x43
 
-#define T6963_MODE_SET						0x80
+#define T6963_MODE_SET						0x81
 
 
 #define T6963_DISPLAY_MODE					0x90
@@ -83,11 +83,13 @@ void setup_adc();
 int get_adc();
 void output_char(char c);
 void output_string(char* str);
-void lcdwrite(unsigned char data);
+void lcdwritedata(unsigned char data);
 void lcdwritecom(unsigned char command);
 unsigned char lcdcheck(void);
 void delay(void);
 void lcdinit(void);
+void lcddo(unsigned char x);
+void lcdwritechar(char charCode);
 
 int main(void){
 	// Initialization
@@ -98,6 +100,8 @@ int main(void){
 	PORTD |= ((1 << LCDWRITE) | (1 << LCDREAD) | (1 << LCDENABLE) | (1 << LCDCOMMAND) | (1 << LCDRESET) | (1 << LCDFONT));
 	PORTC = 0x00;
 	PORTB = 0x00;
+	lcdinit();
+	lcdwritechar('a');
 	setup_usart();
 	setup_adc();
 	sei(); // Enable global interrupts!
@@ -106,6 +110,7 @@ int main(void){
 	
 	int sweepres[8];
 	//int currstat;
+	
 	
 	for(;;) {
 		
@@ -293,24 +298,24 @@ PORTB |= (1 << LCDRESET);
 PORTB &= ~(1 << LCDFONT);
 
 
-lcdwrite(0 & 0xFF);
-lcdwrite(0 >> 8);
+lcdwritedata(0 & 0xFF);
+lcdwritedata(0 >> 8);
 lcdwritecom(T6963_SET_GRAPHIC_HOME_ADDRESS);
 
-lcdwrite(LCDSPACE);
-lcdwrite(0x00);
+lcdwritedata(LCDSPACE);
+lcdwritedata(0x00);
 lcdwritecom(T6963_SET_GRAPHIC_AREA);
 
-lcdwrite(0);
-lcdwrite(0 >> 8);
+lcdwritedata(0);
+lcdwritedata(0 >> 8);
 lcdwritecom(T6963_SET_TEXT_HOME_ADDRESS);
 
-lcdwrite(LCDSPACE);
-lcdwrite(0x00);
+lcdwritedata(LCDSPACE);
+lcdwritedata(0x00);
 lcdwritecom(T6963_SET_TEXT_AREA);
 
-lcdwrite(2);
-lcdwrite(0x00);
+lcdwritedata(2);
+lcdwritedata(0x00);
 lcdwritecom(T6963_SET_OFFSET_REGISTER);
 
 lcdwritecom(T6963_DISPLAY_MODE  | T6963_GRAPHIC_DISPLAY_ON   | T6963_TEXT_DISPLAY_ON /*| T6963_CURSOR_DISPLAY_ON*/);
@@ -342,7 +347,7 @@ delay();
 PORTD |= ((1 << LCDWRITE) | (1 << LCDENABLE));
 }
 
-void lcdwrite(unsigned char data)
+void lcdwritedata(unsigned char data)
 {
 while(!(lcdcheck()&0x03));
 PORTB = data;
@@ -351,6 +356,21 @@ PORTD &= ~((1 << LCDWRITE) | (1 << LCDENABLE) | (1 << LCDCOMMAND));
 delay();
 PORTD |= ((1 << LCDWRITE) | (1 << LCDENABLE) | (1 << LCDCOMMAND));
 }
+
+void lcdwritechar(char charCode)
+{
+	lcddo(charCode - 32);
+}
+
+void lcddo(unsigned char x)
+{
+lcdwritedata(x);
+lcdwritecom(T6963_DATA_WRITE_AND_INCREMENT);
+}
+
+
+
+
 
 
 
