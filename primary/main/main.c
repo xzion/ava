@@ -80,12 +80,13 @@ int sweeping = 0;
 int main(void){
 	// Initialization
 	
-	DDRD = 0xFF;
-	DDRB = 0xFF;
-	DDRC = 0xFF;
-	PORTD |= ((1 << LCDWRITE) | (1 << LCDREAD) | (1 << LCDENABLE) | (1 << LCDCOMMAND) | (1 << LCDRESET) | (1 << LCDFONT));
+	//DDRD = 0xFF;
+	//DDRB = 0xFF;	
+	//PORTD |= ((1 << LCDWRITE) | (1 << LCDREAD) | (1 << LCDENABLE) | (1 << LCDCOMMAND) | (1 << LCDRESET) | (1 << LCDFONT));
+	//PORTB = 0x00;
+	DDRC = 0x08;
 	PORTC = 0x00;
-	PORTB = 0x00;
+	/*
 	lcdinit();
 	lcdcleartext();
 	lcdcleargen();
@@ -93,92 +94,150 @@ int main(void){
 	
 	lcdcoord(0,0);
 	lcdwritestring("group 23 woo");
-	lcdwritechar('a');
+	*/
 	setup_usart();
 	setup_adc();
 	sei(); // Enable global interrupts!
-	output_string("Ready: Coen McClelland 42363901\n");
-	UDR0 = '\r';
+	//output_string("Ready: Coen McClelland 42363901\n");
+	//UDR0 = '\r';
 	
 	int sweepres[8];
+	char resultstring[50];
+	int min;
+	int max;
+	int adc_result, avg;
 	//int currstat;
 	
 	
 	for(;;) {
-		
+				
 		while(sweeping) {
-			/*
-			output_string("sweeping\n");
-			UDR0 = '\r';
+			PORTC &= (1<<PORTC4);
+			while(PINC&(0<<PINC5)) {
+				// Do Nothing, waiting to start.
+			}
+			PORTC &= (0<<PORTC4);
+			// 50Hz
+			min = 255;
+			max = 0;
+			while(PINC&(1<<PINC5)) {
+				adc_result = get_adc();
+				if (adc_result < min) {
+					min = adc_result;
+				}
+				else if (adc_result > max) {
+					max = adc_result;
+				}
+			}
+			avg = (max + min)/2;
+			sweepres[0] = avg;
+			// 100Hz
+			min = 255;
+			max = 0;
+			while(PINC&(0<<PINC5)) {
+				adc_result = get_adc();
+				if (adc_result < min) {
+					min = adc_result;
+				}
+				else if (adc_result > max) {
+					max = adc_result;
+				}
+			}
+			avg = (max + min)/2;
+			sweepres[1] = avg;
+			// 500Hz
+			min = 255;
+			max = 0;
+			while(PINC&(1<<PINC5)) {
+				adc_result = get_adc();
+				if (adc_result < min) {
+					min = adc_result;
+				}
+				else if (adc_result > max) {
+					max = adc_result;
+				}
+			}
+			avg = (max + min)/2;
+			sweepres[2] = avg;
+			// 1kHz
+			min = 255;
+			max = 0;
+			while(PINC&(0<<PINC5)) {
+				adc_result = get_adc();
+				if (adc_result < min) {
+					min = adc_result;
+				}
+				else if (adc_result > max) {
+					max = adc_result;
+				}
+			}
+			avg = (max + min)/2;
+			sweepres[3] = avg;
+			// 2kHz
+			min = 255;
+			max = 0;
+			while(PINC&(1<<PINC5)) {
+				adc_result = get_adc();
+				if (adc_result < min) {
+					min = adc_result;
+				}
+				else if (adc_result > max) {
+					max = adc_result;
+				}
+			}
+			avg = (max + min)/2;
+			sweepres[4] = avg;
+			// 4kHz
+			min = 255;
+			max = 0;
+			while(PINC&(0<<PINC5)) {
+				adc_result = get_adc();
+				if (adc_result < min) {
+					min = adc_result;
+				}
+				else if (adc_result > max) {
+					max = adc_result;
+				}
+			}
+			avg = (max + min)/2;
+			sweepres[5] = avg;
+			// 8kHz
+			min = 255;
+			max = 0;
+			while(PINC&(1<<PINC5)) {
+				adc_result = get_adc();
+				if (adc_result < min) {
+					min = adc_result;
+				}
+				else if (adc_result > max) {
+					max = adc_result;
+				}
+			}
+			avg = (max + min)/2;
+			sweepres[6] = avg;
+			// 16kHz
+			min = 255;
+			max = 0;
+			while(PINC&(0<<PINC5)) {
+				adc_result = get_adc();
+				if (adc_result < min) {
+					min = adc_result;
+				}
+				else if (adc_result > max) {
+					max = adc_result;
+				}
+			}
+			avg = (max + min)/2;
+			sweepres[7] = avg;
+			
+			//resultstring = "mplitude,86,113,193,130,75,92,117,84";
+			sprintf(resultstring, "mplitude,%d,%d,%d,%d,%d,%d,%d,%d");
+			output_string(resultstring);
+			UDR0 = 'a';
 			while(bytes_in_buffer != 0) {
 				// nothing, wait for output to complete
 			}
-			*/
-			/*DDRC = 0xFF;
-			PORTC = 0x10;
-			DDRC = 0x00;
-			while(!(PINC&(1<<PINC5))) {
-				// Do Nothing, waiting to start.
-			}*/
-			int i;
-			for (i = 0; i < 1; i++) {
-				//DDRC = 0x00;
-				//currstat = PINC;
-				/*
-				output_string("forloop\n");
-				UDR0 = '\r';
-				while(bytes_in_buffer != 0) {
-				// nothing, wait for output to complete
-				}
-				*/
-				int min = 255;
-				int max = 0;
-				int adc_result, avg;
-				char gotout[10];
-				
-				//while (PINC == currstat) {
-				while (sweeping) {
-					adc_result = get_adc();
-					if (adc_result < min) {
-						min = adc_result;
-					}
-					else if (adc_result > max) {
-						max = adc_result;
-					}
-					
-					//sprintf(gotout, "got %d\n", adc_result);
-					PORTB = max;
-					//output_string(gotout);
-					//UDR0 = '\r';
-					//while(bytes_in_buffer != 0) {
-						// nothing, wait for output to complete
-					//}
-				}
-				sprintf(gotout, "min %d\n", min);
-				output_string(gotout);
-				UDR0 = '\r';
-				while(bytes_in_buffer != 0) {
-					// nothing, wait for output to complete
-				}
-				sprintf(gotout, "max %d\n", max);
-				output_string(gotout);
-				UDR0 = '\r';
-				while(bytes_in_buffer != 0) {
-					// nothing, wait for output to complete
-				}
-				avg = (min + max)/2;
-				sweepres[i] = avg;
-				sprintf(gotout, "avg %d\n", avg);
-				output_string(gotout);
-				UDR0 = '\r';
-				while(bytes_in_buffer != 0) {
-					// nothing, wait for output to complete
-				}
-			}
-		}
-		DDRC = 0xFF;
-		PORTC = 0x00;
-		// DO LCD graph for 10 seconds
+		}		
 	} 
 }
 
@@ -256,20 +315,19 @@ ISR(USART_RX_vect) {
 	input = UDR0;
 	PORTB = 0x01;
 	if (input ==  's'){
-		output_string("mplitude,5,12,36,2,4,9,47,254");
+		//output_string("mplitude,5,12,36,2,4,9,47,254");
 		sweeping = 1;
-		UDR0 = 'a';
-	} else if (input == 'v') {
-		output_string("v: Entering Voltmeter Mode\n");
-		UDR0 = ' ';
-	} else if (input == 'x') {
-		output_string("x: Stopping Audio Sweep\n");
+		//UDR0 = 'a';
+ 	} else if (input == 'x') {
+		//output_string("x: Stopping Audio Sweep\n");
 		sweeping = 0;
-		UDR0 = ' ';
+		//UDR0 = ' ';
 	} else {
 		//output_string("Invalid Command: Entering Splash Mode\n\r");
 	}
 }
+
+/*
 
 void delay(void)
 {
@@ -310,7 +368,7 @@ lcdwritedata(2);
 lcdwritedata(0x00);
 lcdwritecom(T6963_SET_OFFSET_REGISTER);
 
-lcdwritecom(T6963_DISPLAY_MODE  | T6963_GRAPHIC_DISPLAY_ON   | T6963_TEXT_DISPLAY_ON /*| T6963_CURSOR_DISPLAY_ON*/);
+lcdwritecom(T6963_DISPLAY_MODE  | T6963_GRAPHIC_DISPLAY_ON   | T6963_TEXT_DISPLAY_ON);
 
 lcdwritecom(T6963_MODE_SET | 0);
 
@@ -417,7 +475,7 @@ lcdsetpointer(address);
 }
 
 
-
+*/
 
 
 
