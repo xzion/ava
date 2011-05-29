@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectVersion>1.0</ProjectVersion>
     <ProjectGuid>{32a3f82e-3dd7-42cc-ada8-6c12ebfbe743}</ProjectGuid>
-    <avrdevice>ATmega48P</avrdevice>
+    <avrdevice>ATmega88</avrdevice>
     <avrdeviceseries>none</avrdeviceseries>
     <OutputFile>$(MSBuildProjectName).elf</OutputFile>
     <OutputDirectory>$(MSBuildProjectDirectory)\$(Configuration)</OutputDirectory>
@@ -13,6 +13,7 @@
     <AssemblyName>main</AssemblyName>
     <Name>main</Name>
     <RootNamespace>main</RootNamespace>
+    <avrtool />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <ToolchainSettings>

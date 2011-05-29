@@ -84,7 +84,7 @@ int main(void){
 	//DDRB = 0xFF;	
 	//PORTD |= ((1 << LCDWRITE) | (1 << LCDREAD) | (1 << LCDENABLE) | (1 << LCDCOMMAND) | (1 << LCDRESET) | (1 << LCDFONT));
 	//PORTB = 0x00;
-	DDRC = 0x08;
+	DDRC = 0x10;
 	PORTC = 0x00;
 	/*
 	lcdinit();
