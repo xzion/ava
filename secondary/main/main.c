@@ -25,18 +25,21 @@ int main(void){
 	// Initialization
 	DDRD = 0xFF;
 	PORTD = 0x00;
-	DDRC = 0x20;
+	DDRC = 0xEF;
 	DDRB = 0xFF;
+	PORTC = 0x00;
 	
 	setup_timer0();
 	setup_timer1();
 	
 	for(;;) {
-		PORTC &= (0<<PC5);
+		/*
+		PORTC &= (0<<PORTC3);
 		while(!(PINC&(1<<PINC4))) {
 			PORTB = 0x01;
 			// Do nothing, waiting for order to start!
 		}
+		*/
 		//DDRC = 0xFF;
 		PORTB = 0x00;
 		sei(); // Enable global interrupts!
@@ -55,7 +58,7 @@ ISR(TIMER1_COMPA_vect){
 	tblpos++;
 	//tblpos = 2; //Testing
 	if(tblpos==10){
-		PORTC = (1<<PC5);
+		PORTC |= (1<<PORTC3);
 		tblpos = 0;
 		tblnum = 0;
 		sweep = 1;
@@ -64,39 +67,40 @@ ISR(TIMER1_COMPA_vect){
 	}
 	switch(tblpos){
 		case 1: // Break
+			PORTC &= (0<<PORTC3);
 			OCR0A = 0xFF;
 			break;
 		case 2: // 50Hz - 64 samples
-			PORTC &= (1<<PC5); // Tell Primary chip to start testing with ADC
+			PORTC |= (1<<PORTC3); // Tell Primary chip to start testing with ADC
 			OCR0A = 0x61;
 			break;
 		case 3: // 100Hz - 64 samples
 			OCR0A = 0x30;
-			PORTC &= (0<<PC5);
+			PORTC &= (0<<PORTC3);
 			break;
 		case 4: // 500Hz - 64 samples
 			OCR0A = 0x09;
-			PORTC &= (1<<PC5);
+			PORTC |= (1<<PORTC3);
 			break;
 		case 5: // 1kHz - 16 samples
 			OCR0A = 0x13;
-			PORTC &= (0<<PC5);
+			PORTC &= (0<<PORTC3);
 			break;
 		case 6: // 2kHz - 16 samples
 			OCR0A = 0x09;
-			PORTC &= (1<<PC5);
+			PORTC |= (1<<PORTC3);
 			break;
 		case 7: // 4kHz - 16 samples
 			OCR0A = 0x04;
-			PORTC &= (0<<PC5);
+			PORTC &= (0<<PORTC3);
 			break;
 		case 8: // 8kHz - 8 samples
 			OCR0A = 0x04;
-			PORTC &= (1<<PC5);
+			PORTC |= (1<<PORTC3);
 			break;
 		case 9: // 16kHz - 8 samples
 			OCR0A = 0x01;
-			PORTC &= (0<<PC5);
+			PORTC &= (0<<PORTC3);
 			break;
 	}
 	tblnum = 0;	

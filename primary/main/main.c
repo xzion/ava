@@ -12,6 +12,13 @@
 
 #define BUFFER_SIZE 128
 
+void setup_usart();
+void setup_adc();
+int get_adc();
+void output_string(char* str);
+void output_char(char c);
+
+
 /*
 #define LCDOUTPUT PORTB
 
@@ -74,7 +81,7 @@
 volatile char buffer[BUFFER_SIZE];
 volatile unsigned char insert_pos;
 volatile unsigned char bytes_in_buffer;
-int sweeping = 0;
+volatile int sweeping;
 
 
 int main(void){
@@ -98,29 +105,49 @@ int main(void){
 	setup_usart();
 	setup_adc();
 	sei(); // Enable global interrupts!
-	//output_string("Ready: Coen McClelland 42363901\n");
-	//UDR0 = '\r';
+	output_string("mplitude,86,113,193,130,75,92,117,84");
+	UDR0 = 'a';
+	while(bytes_in_buffer != 0) {
+		// nothing, wait for output to complete
+	}
 	
+	/*
 	int sweepres[8];
-	char resultstring[50];
+	sweeping = 0;
 	int min;
 	int max;
 	int adc_result, avg;
-	//int currstat;
+	*/
 	
 	
-	for(;;) {
-				
+	while(1) {
+		/*		
 		while(sweeping) {
-			PORTC &= (1<<PORTC4);
-			while(PINC&(0<<PINC5)) {
+			
+			PORTC |= (1<<PORTC4);
+			output_string("waiting\n");
+			UDR0 = '\r';
+			while(bytes_in_buffer != 0) {
+				// nothing, wait for output to complete
+			}
+			while(!(PINC&(1<<PINC3))) {
 				// Do Nothing, waiting to start.
 			}
 			PORTC &= (0<<PORTC4);
+			output_string("done\n");
+			UDR0 = '\r';
+			while(bytes_in_buffer != 0) {
+				// nothing, wait for output to complete
+			}
 			// 50Hz
+			output_string("1\n");
+			UDR0 = '\r';
+			while(bytes_in_buffer != 0) {
+				// nothing, wait for output to complete
+			}
 			min = 255;
 			max = 0;
-			while(PINC&(1<<PINC5)) {
+			while(PINC&(1<<PINC3)) {
 				adc_result = get_adc();
 				if (adc_result < min) {
 					min = adc_result;
@@ -132,9 +159,14 @@ int main(void){
 			avg = (max + min)/2;
 			sweepres[0] = avg;
 			// 100Hz
+			output_string("2\n");
+			UDR0 = '\r';
+			while(bytes_in_buffer != 0) {
+				// nothing, wait for output to complete
+			}
 			min = 255;
 			max = 0;
-			while(PINC&(0<<PINC5)) {
+			while(!(PINC&(1<<PINC3))) {
 				adc_result = get_adc();
 				if (adc_result < min) {
 					min = adc_result;
@@ -146,9 +178,14 @@ int main(void){
 			avg = (max + min)/2;
 			sweepres[1] = avg;
 			// 500Hz
+			output_string("3\n");
+			UDR0 = '\r';
+			while(bytes_in_buffer != 0) {
+				// nothing, wait for output to complete
+			}
 			min = 255;
 			max = 0;
-			while(PINC&(1<<PINC5)) {
+			while(PINC&(1<<PINC3)) {
 				adc_result = get_adc();
 				if (adc_result < min) {
 					min = adc_result;
@@ -160,9 +197,14 @@ int main(void){
 			avg = (max + min)/2;
 			sweepres[2] = avg;
 			// 1kHz
+			output_string("4\n");
+			UDR0 = '\r';
+			while(bytes_in_buffer != 0) {
+				// nothing, wait for output to complete
+			}
 			min = 255;
 			max = 0;
-			while(PINC&(0<<PINC5)) {
+			while(!(PINC&(1<<PINC3))) {
 				adc_result = get_adc();
 				if (adc_result < min) {
 					min = adc_result;
@@ -174,9 +216,14 @@ int main(void){
 			avg = (max + min)/2;
 			sweepres[3] = avg;
 			// 2kHz
+			output_string("5\n");
+			UDR0 = '\r';
+			while(bytes_in_buffer != 0) {
+				// nothing, wait for output to complete
+			}
 			min = 255;
 			max = 0;
-			while(PINC&(1<<PINC5)) {
+			while(PINC&(1<<PINC3)) {
 				adc_result = get_adc();
 				if (adc_result < min) {
 					min = adc_result;
@@ -188,9 +235,14 @@ int main(void){
 			avg = (max + min)/2;
 			sweepres[4] = avg;
 			// 4kHz
+			output_string("6\n");
+			UDR0 = '\r';
+			while(bytes_in_buffer != 0) {
+				// nothing, wait for output to complete
+			}
 			min = 255;
 			max = 0;
-			while(PINC&(0<<PINC5)) {
+			while(!(PINC&(1<<PINC3))) {
 				adc_result = get_adc();
 				if (adc_result < min) {
 					min = adc_result;
@@ -202,9 +254,14 @@ int main(void){
 			avg = (max + min)/2;
 			sweepres[5] = avg;
 			// 8kHz
+			output_string("7\n");
+			UDR0 = '\r';
+			while(bytes_in_buffer != 0) {
+				// nothing, wait for output to complete
+			}
 			min = 255;
 			max = 0;
-			while(PINC&(1<<PINC5)) {
+			while(PINC&(1<<PINC3)) {
 				adc_result = get_adc();
 				if (adc_result < min) {
 					min = adc_result;
@@ -216,9 +273,14 @@ int main(void){
 			avg = (max + min)/2;
 			sweepres[6] = avg;
 			// 16kHz
+			output_string("8\n");
+			UDR0 = '\r';
+			while(bytes_in_buffer != 0) {
+				// nothing, wait for output to complete
+			}
 			min = 255;
 			max = 0;
-			while(PINC&(0<<PINC5)) {
+			while(!(PINC&(1<<PINC3))) {
 				adc_result = get_adc();
 				if (adc_result < min) {
 					min = adc_result;
@@ -230,14 +292,15 @@ int main(void){
 			avg = (max + min)/2;
 			sweepres[7] = avg;
 			
-			//resultstring = "mplitude,86,113,193,130,75,92,117,84";
-			sprintf(resultstring, "mplitude,%d,%d,%d,%d,%d,%d,%d,%d");
-			output_string(resultstring);
-			UDR0 = 'a';
+			char *resultstring = "mplitude,86,113,193,130,75,92,117,84";
+			//sprintf(resultstring, "mplitude,%d,%d,%d,%d,%d,%d,%d,%d");
+			output_string("finito\n");
+			UDR0 = '\r';
 			while(bytes_in_buffer != 0) {
 				// nothing, wait for output to complete
 			}
-		}		
+		}
+		*/		
 	} 
 }
 
@@ -313,14 +376,14 @@ ISR(USART_TX_vect) {
 ISR(USART_RX_vect) {
 	char input;
 	input = UDR0;
-	PORTB = 0x01;
+	//PORTB = 0x01;
 	if (input ==  's'){
-		//output_string("mplitude,5,12,36,2,4,9,47,254");
-		sweeping = 1;
-		//UDR0 = 'a';
+		output_string("mplitude,86,113,193,130,75,92,117,84");
+		UDR0 = 'a';
+		//sweeping = 1;
  	} else if (input == 'x') {
 		//output_string("x: Stopping Audio Sweep\n");
-		sweeping = 0;
+		//sweeping = 0;
 		//UDR0 = ' ';
 	} else {
 		//output_string("Invalid Command: Entering Splash Mode\n\r");
